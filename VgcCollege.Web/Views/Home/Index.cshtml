@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center mb-5">
+    <h1 class="display-4">VgcCollege Management System</h1>
+    <p class="lead">Welcome to the Acme Global College (VGC) Student & Course Management System.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Administrator</h3>
+        <p>Manage branches, courses, staff assignments, student registrations, and release exam results.</p>
+        <p><strong>Login:</strong> admin@nixuge.me / Securite2026!!</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Faculty</h3>
+        <p>View your assigned courses, manage student gradebooks, and track attendance.</p>
+        <p><strong>Login:</strong> faculty@nixuge.me / Securite2026!!</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Student</h3>
+        <p>View your profile, course enrolments, assignment results, and exam results (when released).</p>
+        <p><strong>Login:</strong> student1@nixuge.me / Securite2026!!</p>
+    </div>
+</div>
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="text-center mt-4">
+        <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Login">Get Started - Login</a>
+    </div>
+}
+else
+{
+    <div class="text-center mt-4 alert alert-info">
+        You are logged in as <strong>@User.Identity.Name</strong>. Use the navigation menu to access your features.
+    </div>
+}

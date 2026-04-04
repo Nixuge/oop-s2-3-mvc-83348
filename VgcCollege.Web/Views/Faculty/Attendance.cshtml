@@ -1,0 +1,50 @@
+@model VgcCollege.Domain.Models.Course
+@{
+    ViewData["Title"] = "Attendance Tracking";
+    int currentWeek = ViewBag.WeekNumber;
+}
+
+<h1>Attendance for @Model.Name - Week @currentWeek</h1>
+
+<form method="get" class="mb-4 mt-3">
+    <input type="hidden" name="courseId" value="@Model.Id" />
+    <label>Change Week:</label>
+    <select name="weekNumber" onchange="this.form.submit()" class="form-select d-inline-block w-auto">
+        @for (int i = 1; i <= 12; i++)
+        {
+            <option value="@i" selected="@(i == currentWeek ? "selected" : null)">Week @i</option>
+        }
+    </select>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Student Name</th>
+            <th>Present?</th>
+            <th>Last Recorded</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var enrolment in Model.Enrolments)
+        {
+            var record = enrolment.AttendanceRecords.FirstOrDefault(r => r.WeekNumber == currentWeek);
+            <tr>
+                <td>@enrolment.Student?.Name</td>
+                <td>
+                    <form asp-action="MarkAttendance" method="post">
+                        <input type="hidden" name="enrolmentId" value="@enrolment.Id" />
+                        <input type="hidden" name="weekNumber" value="@currentWeek" />
+                        <div class="btn-group" role="group">
+                            <button type="submit" name="present" value="true" class="btn btn-sm @(record?.Present == true ? "btn-success" : "btn-outline-success")">Yes</button>
+                            <button type="submit" name="present" value="false" class="btn btn-sm @(record != null && !record.Present ? "btn-danger" : "btn-outline-danger")">No</button>
+                        </div>
+                    </form>
+                </td>
+                <td>@(record?.Date.ToString("g") ?? "N/A")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="MyCourses" class="btn btn-secondary">Back to My Courses</a>

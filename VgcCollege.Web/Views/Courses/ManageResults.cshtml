@@ -1,0 +1,41 @@
+@model VgcCollege.Domain.Models.Course
+@{
+    ViewData["Title"] = "Manage Exam Results Release";
+}
+
+<h1>@ViewData["Title"] for @Model.Name</h1>
+
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>Exam Title</th>
+            <th>Date</th>
+            <th>Results Released?</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var exam in Model.Exams) {
+        <tr>
+            <td>@exam.Title</td>
+            <td>@exam.Date.ToShortDateString()</td>
+            <td>
+                <span class="badge @(exam.ResultsReleased ? "bg-success" : "bg-warning")">
+                    @(exam.ResultsReleased ? "Released" : "Provisional")
+                </span>
+            </td>
+            <td>
+                <form asp-action="ToggleExamResults" method="post" style="display:inline;">
+                    <input type="hidden" name="examId" value="@exam.Id" />
+                    <input type="hidden" name="released" value="@(!exam.ResultsReleased ? "true" : "false")" />
+                    <button type="submit" class="btn btn-sm @(exam.ResultsReleased ? "btn-warning" : "btn-success")">
+                        @(exam.ResultsReleased ? "Unrelease" : "Release Results")
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>
