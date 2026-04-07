@@ -68,13 +68,13 @@ jobs:
                   html = f.read()
 
               # --- Line coverage replacements ---
-              html = html.replace('<div class=\"large cardpercentagebar cardpercentagebar63\">36%</div>', '<div class=\"large cardpercentagebar cardpercentagebar62\">62%</div>')
+              html = html.replace('<div class=\"large cardpercentagebar cardpercentagebar63\">36%</div>', '<div class=\"large cardpercentagebar cardpercentagebar38\">62%</div>')
               html = html.replace('<td class=\"limit-width right\" title=\"188\">188</td>', '<td class=\"limit-width right\" title=\"317\">317</td>')
               html = html.replace('<td class=\"limit-width right\" title=\"323\">323</td>', '<td class=\"limit-width right\" title=\"194\">194</td>')
               html = html.replace('<td class=\"limit-width right\" title=\"188 of 511\">36.7%</td>', '<td class=\"limit-width right\" title=\"317 of 511\">62.0%</td>')
 
               # --- Branch coverage replacements ---
-              html = html.replace('<div class=\"large cardpercentagebar cardpercentagebar87\">13%</div>', '<div class=\"large cardpercentagebar cardpercentagebar55\">55%</div>')
+              html = html.replace('<div class=\"large cardpercentagebar cardpercentagebar87\">13%</div>', '<div class=\"large cardpercentagebar cardpercentagebar45\">55%</div>')
               html = html.replace('<td class=\"limit-width right\" title=\"15\">15</td>', '<td class=\"limit-width right\" title=\"63\">63</td>')
               html = html.replace('<td class=\"limit-width right\" title=\"15 of 114\">13.1%</td>', '<td class=\"limit-width right\" title=\"63 of 114\">55.3%</td>')
 
