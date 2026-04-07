@@ -19,7 +19,6 @@ permissions:
 
 env:
   DOTNET_VERSION: "8.0.x"
-  # Point this to your xUnit test project (csproj). Adjust as needed. Minor change
   TEST_PROJECT: "VgcCollege.Tests/VgcCollege.Tests.csproj"
 
 jobs:
@@ -46,14 +45,14 @@ jobs:
       - name: List root directory
         run: ls -la
 
-# 1. Run tests normally without flaky exclusions (keeps branch coverage intact)
+      # 1. Run tests normally (keeps branch coverage intact)
       - name: Test (xUnit) and collect coverage
         run: >
           dotnet test $TEST_PROJECT -c Release --no-build
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
 
-      # 2. SURGICAL STRIKE: Remove the views directly from the XML report
+      # 2. SURGICAL STRIKE: Remove views and save to a BRAND NEW file
       - name: Filter Coverage XML (Remove Views)
         run: |
           python3 -c "
@@ -61,42 +60,43 @@ jobs:
           import glob
 
           files = glob.glob('**/coverage.cobertura.xml', recursive=True)
-          for file in files:
+          for i, file in enumerate(files):
               tree = ET.parse(file)
               root = tree.getroot()
               removed = 0
-              # Find and remove any class containing AspNetCoreGeneratedDocument
+              
+              # Find and remove any class containing AspNetCoreGeneratedDocument or Views_
               for classes in root.iter('classes'):
                   for cls in list(classes):
                       name = cls.get('name', '')
-                      if name.startswith('AspNetCoreGeneratedDocument') or 'Views_' in name:
+                      if 'AspNetCoreGeneratedDocument' in name or 'Views_' in name:
                           classes.remove(cls)
                           removed += 1
-              # Save the cleaned file
-              tree.write(file, encoding='utf-8', xml_declaration=True)
-              print(f'Successfully removed {removed} generated view classes from {file}')
+              
+              # Save to a new file in the root directory so ReportGenerator can't read the old one
+              new_filename = f'cleaned-coverage-{i}.xml'
+              tree.write(new_filename, encoding='utf-8', xml_declaration=True)
+              print(f'Successfully removed {removed} view classes from {file}. Saved as {new_filename}')
           "
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      # 3. Generate the HTML report using the cleaned XML
+      # 3. Generate HTML report pointing strictly to the NEW cleaned file
       - name: Generate HTML coverage report
         run: |
           export PATH="$PATH:~/.dotnet/tools"
           reportgenerator \
-            -reports:**/coverage.cobertura.xml \
+            -reports:cleaned-coverage-*.xml \
             -targetdir:coveragereport \
             -reporttypes:Html
 
-      # Make the HTML report available as a workflow artifact on PRs too
       - name: Upload coverage as build artifact
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
           path: coveragereport
 
-      # Only package for Pages when merging/pushing to main
       - name: Upload Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
@@ -104,7 +104,6 @@ jobs:
           path: ./coveragereport
 
   deploy:
-    # Only deploy on push to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-and-test
     runs-on: ubuntu-latest
