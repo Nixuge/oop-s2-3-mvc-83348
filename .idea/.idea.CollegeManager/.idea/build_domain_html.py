@@ -29,7 +29,6 @@ if os.path.exists(filepath):
     # This regex finds every <tr>...</tr> block in the document and passes it to the function above
     html = re.sub(r'<tr[^>]*>.*?</tr>', remove_generated_rows, html, flags=re.DOTALL | re.IGNORECASE)
 
-    # Save the file
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(html)
         
