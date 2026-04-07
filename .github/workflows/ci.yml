@@ -52,12 +52,13 @@ jobs:
           --settings coverlet.runsettings
           --logger "trx;LogFileName=test-results.trx"
 
-      # 2. SURGICAL STRIKE: Remove views and save to a BRAND NEW file
+       # 2. SURGICAL STRIKE: Remove views and NUKE the original file
       - name: Filter Coverage XML (Remove Views)
         run: |
           python3 -c "
           import xml.etree.ElementTree as ET
           import glob
+          import os
 
           files = glob.glob('**/coverage.cobertura.xml', recursive=True)
           for i, file in enumerate(files):
@@ -65,7 +66,6 @@ jobs:
               root = tree.getroot()
               removed = 0
               
-              # Find and remove any class containing AspNetCoreGeneratedDocument or Views_
               for classes in root.iter('classes'):
                   for cls in list(classes):
                       name = cls.get('name', '')
@@ -73,10 +73,13 @@ jobs:
                           classes.remove(cls)
                           removed += 1
               
-              # Save to a new file in the root directory so ReportGenerator can't read the old one
               new_filename = f'cleaned-coverage-{i}.xml'
               tree.write(new_filename, encoding='utf-8', xml_declaration=True)
               print(f'Successfully removed {removed} view classes from {file}. Saved as {new_filename}')
+              
+              # DESTROY THE ORIGINAL FILE
+              os.remove(file)
+              print(f'Deleted original file {file} so ReportGenerator cannot find it.')
           "
 
       - name: Install ReportGenerator
