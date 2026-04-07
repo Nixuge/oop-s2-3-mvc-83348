@@ -45,54 +45,22 @@ jobs:
       - name: List root directory
         run: ls -la
 
+      # 1. Run tests normally (let Coverlet grab everything)
       - name: Test (xUnit) and collect coverage
         run: >
           dotnet test $TEST_PROJECT -c Release --no-build
           --collect:"XPlat Code Coverage"
-          --settings coverlet.runsettings
           --logger "trx;LogFileName=test-results.trx"
 
-       # 2. SURGICAL STRIKE: Remove views and NUKE the original file
-      - name: Filter Coverage XML (Remove Views)
-        run: |
-          python3 -c "
-          import xml.etree.ElementTree as ET
-          import glob
-          import os
-
-          files = glob.glob('**/coverage.cobertura.xml', recursive=True)
-          for i, file in enumerate(files):
-              tree = ET.parse(file)
-              root = tree.getroot()
-              removed = 0
-              
-              for classes in root.iter('classes'):
-                  for cls in list(classes):
-                      name = cls.get('name', '')
-                      if 'AspNetCoreGeneratedDocument' in name or 'Views_' in name:
-                          classes.remove(cls)
-                          removed += 1
-              
-              new_filename = f'cleaned-coverage-{i}.xml'
-              tree.write(new_filename, encoding='utf-8', xml_declaration=True)
-              print(f'Successfully removed {removed} view classes from {file}. Saved as {new_filename}')
-              
-              # DESTROY THE ORIGINAL FILE
-              os.remove(file)
-              print(f'Deleted original file {file} so ReportGenerator cannot find it.')
-          "
-
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-
-      # 3. Generate HTML report pointing strictly to the NEW cleaned file
+      # 2. Generate HTML coverage report using the Official Action
       - name: Generate HTML coverage report
-        run: |
-          export PATH="$PATH:~/.dotnet/tools"
-          reportgenerator \
-            -reports:cleaned-coverage-*.xml \
-            -targetdir:coveragereport \
-            -reporttypes:Html
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        with:
+          reports: '**/coverage.cobertura.xml'
+          targetdir: 'coveragereport'
+          reporttypes: 'Html'
+          classfilters: '-*AspNetCoreGeneratedDocument*;-*Views_*'
+          filefilters: '-*.cshtml;-*.g.cs;-*.cshtml.g.cs'
 
       - name: Upload coverage as build artifact
         uses: actions/upload-artifact@v4
