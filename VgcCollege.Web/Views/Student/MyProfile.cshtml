@@ -1,0 +1,73 @@
+@model VgcCollege.Domain.Models.StudentProfile
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Name:</div>
+                        <div class="col-sm-8">@Model.Name</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Email:</div>
+                        <div class="col-sm-8">@Model.Email</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Phone:</div>
+                        <div class="col-sm-8">@Model.Phone</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Address:</div>
+                        <div class="col-sm-8">@Model.Address</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Student Number:</div>
+                        <div class="col-sm-8">@Model.StudentNumber</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Date of Birth:</div>
+                        <div class="col-sm-8">@Model.DateOfBirth.ToShortDateString()</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">My Current Enrolments</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Enrolments == null || !Model.Enrolments.Any())
+                    {
+                        <p class="text-muted mb-0">You are not currently enrolled in any courses.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var enrolment in Model.Enrolments)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <strong>@enrolment.Course?.Name</strong>
+                                        <br />
+                                        <small class="text-muted">Enrolled on: @enrolment.EnrolDate.ToShortDateString()</small>
+                                    </span>
+                                    <span class="badge bg-info text-dark">@enrolment.Status</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="card-footer text-center">
+                    <a asp-action="MyGrades" class="btn btn-primary">View My Grades</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

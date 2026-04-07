@@ -279,4 +279,26 @@ public class VgcTests {
         Assert.NotNull(result);
         Assert.Equal(95, result.Score);
     }
+
+    [Fact]
+    public async Task Admin_CannotEnrolStudentTwiceInSameCourse() {
+        // Arrange
+        var context = GetDbContext();
+        var userManager = GetUserManagerMock();
+        var controller = new StudentsController(context, userManager.Object);
+        var student = new StudentProfile { Id = "s1", Name = "John Doe" };
+        context.StudentProfiles.Add(student);
+        var course = new Course { Id = 1, Name = "CS" };
+        context.Courses.Add(course);
+        context.CourseEnrolments.Add(new CourseEnrolment { StudentProfileId = "s1", CourseId = 1 });
+        await context.SaveChangesAsync();
+
+        // Act
+        var enrolment = new CourseEnrolment { StudentProfileId = "s1", CourseId = 1 };
+        await controller.Enrol(enrolment);
+
+        // Assert
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Equal(1, await context.CourseEnrolments.CountAsync());
+    }
 }

@@ -3,7 +3,10 @@
     ViewData["Title"] = "Students";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="d-flex justify-content-between mb-3">
+    <h1>@ViewData["Title"]</h1>
+    <a asp-action="Create" class="btn btn-success">Create Student</a>
+</div>
 
 <table class="table">
     <thead>
@@ -22,7 +25,8 @@
             <td>@item.StudentNumber</td>
             <td>
                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
-                <a asp-action="Enrol" asp-route-id="@item.Id" class="btn btn-success btn-sm">Enrol in Course</a>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
+                <a asp-action="Enrol" asp-route-id="@item.Id" class="btn btn-success btn-sm">Enrol</a>
             </td>
         </tr>
     }

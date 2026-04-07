@@ -17,7 +17,7 @@ public static class DbInitializer {
         // Admin User
         if (await userManager.FindByEmailAsync("admin@nixuge.me") == null) {
             var user = new IdentityUser { UserName = "admin@nixuge.me", Email = "admin@nixuge.me" };
-            await userManager.CreateAsync(user, "Securite2026!!");
+            await userManager.CreateAsync(user, "Securite2026!");
             await userManager.AddToRoleAsync(user, "Administrator");
         }
 
@@ -25,7 +25,7 @@ public static class DbInitializer {
         FacultyProfile? facultyProfile = null;
         if (await userManager.FindByEmailAsync("faculty@nixuge.me") == null) {
             var user = new IdentityUser { UserName = "faculty@nixuge.me", Email = "faculty@nixuge.me" };
-            await userManager.CreateAsync(user, "Securite2026!!");
+            await userManager.CreateAsync(user, "Securite2026!");
             await userManager.AddToRoleAsync(user, "Faculty");
 
             facultyProfile = new FacultyProfile {
@@ -47,7 +47,7 @@ public static class DbInitializer {
         foreach (var email in studentEmails) {
             if (await userManager.FindByEmailAsync(email) == null) {
                 var user = new IdentityUser { UserName = email, Email = email };
-                await userManager.CreateAsync(user, "Securite2026!!");
+                await userManager.CreateAsync(user, "Securite2026!");
                 await userManager.AddToRoleAsync(user, "Student");
 
                 var profile = new StudentProfile {
@@ -82,9 +82,26 @@ public static class DbInitializer {
         // Courses
         if (!db.Courses.Any()) {
             var dublinBranch = await db.Branches.FirstAsync(b => b.Name == "Dublin");
+            var corkBranch = await db.Branches.FirstAsync(b => b.Name == "Cork");
+            var galwayBranch = await db.Branches.FirstAsync(b => b.Name == "Galway");
+            
             var courses = new List<Course> {
+                // Dublin
                 new Course { Name = "Computer Science", BranchId = dublinBranch.Id, StartDate = DateTime.Now.AddMonths(-1), EndDate = DateTime.Now.AddMonths(11), FacultyProfileId = facultyProfile?.Id },
-                new Course { Name = "Data Analytics", BranchId = dublinBranch.Id, StartDate = DateTime.Now.AddMonths(-2), EndDate = DateTime.Now.AddMonths(10), FacultyProfileId = facultyProfile?.Id }
+                new Course { Name = "Data Analytics", BranchId = dublinBranch.Id, StartDate = DateTime.Now.AddMonths(-2), EndDate = DateTime.Now.AddMonths(10), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Cybersecurity", BranchId = dublinBranch.Id, StartDate = DateTime.Now.AddMonths(-1), EndDate = DateTime.Now.AddMonths(11), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Artificial Intelligence", BranchId = dublinBranch.Id, StartDate = DateTime.Now.AddMonths(1), EndDate = DateTime.Now.AddMonths(13), FacultyProfileId = facultyProfile?.Id },
+                
+                // Cork
+                new Course { Name = "Business Management", BranchId = corkBranch.Id, StartDate = DateTime.Now.AddMonths(-3), EndDate = DateTime.Now.AddMonths(9), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Digital Marketing", BranchId = corkBranch.Id, StartDate = DateTime.Now.AddMonths(-1), EndDate = DateTime.Now.AddMonths(11), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Project Management", BranchId = corkBranch.Id, StartDate = DateTime.Now.AddMonths(2), EndDate = DateTime.Now.AddMonths(14), FacultyProfileId = facultyProfile?.Id },
+                
+                // Galway
+                new Course { Name = "Creative Media", BranchId = galwayBranch.Id, StartDate = DateTime.Now.AddMonths(-2), EndDate = DateTime.Now.AddMonths(10), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Psychology", BranchId = galwayBranch.Id, StartDate = DateTime.Now.AddMonths(-1), EndDate = DateTime.Now.AddMonths(11), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Sociology", BranchId = galwayBranch.Id, StartDate = DateTime.Now.AddMonths(1), EndDate = DateTime.Now.AddMonths(13), FacultyProfileId = facultyProfile?.Id },
+                new Course { Name = "Nursing", BranchId = galwayBranch.Id, StartDate = DateTime.Now.AddMonths(-4), EndDate = DateTime.Now.AddMonths(8), FacultyProfileId = facultyProfile?.Id }
             };
             db.Courses.AddRange(courses);
             await db.SaveChangesAsync();
@@ -92,7 +109,7 @@ public static class DbInitializer {
 
         // Enrolments
         if (!db.CourseEnrolments.Any()) {
-            var courses = await db.Courses.ToListAsync();
+            var courses = await db.Courses.Take(2).ToListAsync(); // Only enrol in the first 2 courses
             foreach (var student in studentProfiles) {
                 foreach (var course in courses) {
                     db.CourseEnrolments.Add(new CourseEnrolment {
@@ -123,8 +140,12 @@ public static class DbInitializer {
         }
 
         if (!db.Assignments.Any()) {
-            var courses = await db.Courses.ToListAsync();
-            foreach (var course in courses) {
+            var coursesWithEnrolments = await db.Courses
+                .Include(c => c.Enrolments)
+                .Where(c => c.Enrolments.Any())
+                .ToListAsync();
+
+            foreach (var course in coursesWithEnrolments) {
                 var assignment = new Assignment {
                     CourseId = course.Id,
                     Title = "Intro Assignment",
@@ -147,8 +168,12 @@ public static class DbInitializer {
         }
 
         if (!db.Exams.Any()) {
-            var courses = await db.Courses.ToListAsync();
-            foreach (var course in courses) {
+            var coursesWithEnrolments = await db.Courses
+                .Include(c => c.Enrolments)
+                .Where(c => c.Enrolments.Any())
+                .ToListAsync();
+
+            foreach (var course in coursesWithEnrolments) {
                 var exam = new Exam {
                     CourseId = course.Id,
                     Title = "Midterm Exam",

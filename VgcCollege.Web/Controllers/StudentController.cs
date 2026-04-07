@@ -13,7 +13,13 @@ public class StudentController : BaseController {
         : base(context, userManager) { }
 
     public async Task<IActionResult> MyProfile() {
-        var profile = await GetCurrentStudentProfileAsync();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        var profile = await _context.StudentProfiles
+            .Include(s => s.Enrolments).ThenInclude(e => e.Course)
+            .FirstOrDefaultAsync(s => s.IdentityUserId == user.Id);
+
         if (profile == null) return NotFound("Student profile not found.");
         return View(profile);
     }
