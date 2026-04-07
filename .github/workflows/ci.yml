@@ -46,26 +46,48 @@ jobs:
       - name: List root directory
         run: ls -la
 
-      # xUnit tests + Coverlet data collector
+# 1. Run tests normally without flaky exclusions (keeps branch coverage intact)
       - name: Test (xUnit) and collect coverage
         run: >
           dotnet test $TEST_PROJECT -c Release --no-build
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
-          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*]*AspNetCoreGeneratedDocument*,[*]*Views_*"
+
+      # 2. SURGICAL STRIKE: Remove the views directly from the XML report
+      - name: Filter Coverage XML (Remove Views)
+        run: |
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          import glob
+
+          files = glob.glob('**/coverage.cobertura.xml', recursive=True)
+          for file in files:
+              tree = ET.parse(file)
+              root = tree.getroot()
+              removed = 0
+              # Find and remove any class containing AspNetCoreGeneratedDocument
+              for classes in root.iter('classes'):
+                  for cls in list(classes):
+                      name = cls.get('name', '')
+                      if name.startswith('AspNetCoreGeneratedDocument') or 'Views_' in name:
+                          classes.remove(cls)
+                          removed += 1
+              # Save the cleaned file
+              tree.write(file, encoding='utf-8', xml_declaration=True)
+              print(f'Successfully removed {removed} generated view classes from {file}')
+          "
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
+      # 3. Generate the HTML report using the cleaned XML
       - name: Generate HTML coverage report
         run: |
           export PATH="$PATH:~/.dotnet/tools"
           reportgenerator \
             -reports:**/coverage.cobertura.xml \
             -targetdir:coveragereport \
-            -reporttypes:Html \
-            -classfilters:"-*AspNetCoreGeneratedDocument*;-*Views_*" \
-            -filefilters:"-*.cshtml"
+            -reporttypes:Html
 
       # Make the HTML report available as a workflow artifact on PRs too
       - name: Upload coverage as build artifact
