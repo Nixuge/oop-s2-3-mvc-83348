@@ -52,7 +52,7 @@ jobs:
           dotnet test $TEST_PROJECT -c Release --no-build
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
-          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="CompilerGeneratedAttribute" DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*.cshtml"
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*.cshtml"
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
