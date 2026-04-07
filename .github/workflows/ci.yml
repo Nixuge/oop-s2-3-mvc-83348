@@ -45,11 +45,11 @@ jobs:
       - name: List root directory
         run: ls -la
 
-      # 1. Run tests normally (keeps branch coverage intact)
       - name: Test (xUnit) and collect coverage
         run: >
           dotnet test $TEST_PROJECT -c Release --no-build
           --collect:"XPlat Code Coverage"
+          --settings coverlet.runsettings
           --logger "trx;LogFileName=test-results.trx"
 
       # 2. SURGICAL STRIKE: Remove views and save to a BRAND NEW file
